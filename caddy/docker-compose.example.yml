@@ -1,0 +1,22 @@
+services:
+  caddy:
+    image: ghcr.io/sphenhe/caddy:latest
+    container_name: proxyapi-caddy
+    restart: unless-stopped
+
+    environment:
+      CF_API_TOKEN: ${CF_API_TOKEN}
+      CADDY_HOSTNAME: ${CADDY_HOSTNAME}
+
+    # If this Docker Caddy directly owns host port 443:
+    ports:
+      - "443:443"
+
+    # If host caddy-l4 owns :443 instead, replace the ports section above with:
+    # ports:
+    #   - "127.0.0.1:10443:443"
+
+    volumes:
+      - ./data/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./data/caddy:/data
+      - ./data/caddy-config:/config
