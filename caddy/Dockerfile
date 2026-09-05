@@ -20,9 +20,10 @@ WORKDIR /build/cloudflare
 #
 # This permits newer long Cloudflare API token formats such as cfat_...
 # The grep check intentionally fails the build if the patch was not applied.
-RUN sed -i 's/{35,50}/{35,}/' cloudflare.go \
-    && grep 'cloudflareTokenRegexp' cloudflare.go \
-    && grep -q '{35,}' cloudflare.go
+# FIXED: The patch is no longer needed as the PR has been merged into the upstream repository.
+# RUN sed -i 's/{35,50}/{35,}/' cloudflare.go \
+#     && grep 'cloudflareTokenRegexp' cloudflare.go \
+#     && grep -q '{35,}' cloudflare.go
 
 WORKDIR /build
 
