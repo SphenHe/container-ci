@@ -34,4 +34,4 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 
 FROM --platform=${TARGETPLATFORM} caddy:2-alpine
 
-COPY --link --from=builder /usr/bin/caddy /usr/bin/caddy
+COPY --link --from=builder /build/caddy /usr/bin/caddy
