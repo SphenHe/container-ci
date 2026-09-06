@@ -1,1 +1,4 @@
 # container-ci
+
+- caddy
+- dsh
