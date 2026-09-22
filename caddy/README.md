@@ -8,18 +8,12 @@ ghcr.io/sphenhe/caddy:latest
 
 ## Included modules
 
-- Caddy
-- `github.com/caddy-dns/cloudflare`
-- Manual application of `caddy-dns/cloudflare` PR #128
+- Caddy `2.11.4`
+- `github.com/caddy-dns/cloudflare` `v0.2.4`
+- `github.com/mholt/caddy-l4` `v0.1.2`
 
-PR #128 removes the upper length limit in the Cloudflare API token validation regex:
-
-```diff
-- ^[A-Za-z0-9_-]{35,50}$
-+ ^[A-Za-z0-9_-]{35,}$
-```
-
-This is needed for newer longer Cloudflare API token formats such as `cfat_...`.
+The versions are pinned in `caddy/Dockerfile` so builds are reproducible. The
+Cloudflare DNS provider includes support for newer `cfat_...` API token formats.
 
 ## Repository layout
 
@@ -43,16 +37,19 @@ From the repository root:
 docker build -t ghcr.io/sphenhe/caddy:local ./caddy
 ```
 
-Verify the Cloudflare DNS module:
+Verify the Cloudflare DNS and Layer 4 modules:
 
 ```bash
-docker run --rm ghcr.io/sphenhe/caddy:local caddy list-modules | grep cloudflare
+docker run --rm ghcr.io/sphenhe/caddy:local caddy list-modules \
+  | grep -E 'cloudflare|layer4'
 ```
 
-Expected:
+Expected modules include:
 
 ```text
 dns.providers.cloudflare
+layer4
+layer4.handlers.proxy
 ```
 
 ## GitHub Actions
@@ -109,7 +106,12 @@ The Caddy environment variable syntax for the Cloudflare token is:
 {env.CF_API_TOKEN}
 ```
 
-## Host caddy-l4 passthrough
+## Layer 4 TLS passthrough
+
+This image includes `caddy-l4`, so the host/edge Caddy can route raw TCP by TLS
+SNI while each backend Caddy terminates TLS itself. The edge must listen on
+`:443`, while each backend should listen on a separate internal port such as
+`:8443`.
 
 If the host machine later owns TCP :443 with caddy-l4 and only passes TLS through to this Docker Caddy, change:
 

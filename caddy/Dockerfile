@@ -1,37 +1,25 @@
-FROM --platform=${BUILDPLATFORM} caddy:2-builder-alpine AS builder
+ARG CADDY_VERSION=2.11.4
+ARG CADDY_L4_VERSION=v0.1.2
+ARG CLOUDFLARE_DNS_VERSION=v0.2.4
+
+FROM --platform=${BUILDPLATFORM} caddy:${CADDY_VERSION}-builder-alpine AS builder
 
 ARG TARGETOS
 ARG TARGETARCH
+ARG CADDY_VERSION
+ARG CADDY_L4_VERSION
+ARG CLOUDFLARE_DNS_VERSION
 
 RUN apk add --no-cache git
 
 WORKDIR /build
 
-# Clone caddy-dns/cloudflare.
-RUN git clone https://github.com/caddy-dns/cloudflare.git
-
-WORKDIR /build/cloudflare
-
-# Apply caddy-dns/cloudflare PR #128 manually.
-# PR #128 changes:
-#   ^[A-Za-z0-9_-]{35,50}$
-# to:
-#   ^[A-Za-z0-9_-]{35,}$
-#
-# This permits newer long Cloudflare API token formats such as cfat_...
-# The grep check intentionally fails the build if the patch was not applied.
-# FIXED: The patch is no longer needed as the PR has been merged into the upstream repository.
-# RUN sed -i 's/{35,50}/{35,}/' cloudflare.go \
-#     && grep 'cloudflareTokenRegexp' cloudflare.go \
-#     && grep -q '{35,}' cloudflare.go
-
-WORKDIR /build
-
 RUN --mount=type=cache,target=/root/.cache/go-build \
     GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
-    xcaddy build \
-      --with github.com/caddy-dns/cloudflare=/build/cloudflare
+    xcaddy build v${CADDY_VERSION} \
+      --with github.com/caddy-dns/cloudflare@${CLOUDFLARE_DNS_VERSION} \
+      --with github.com/mholt/caddy-l4@${CADDY_L4_VERSION}
 
-FROM --platform=${TARGETPLATFORM} caddy:2-alpine
+FROM --platform=${TARGETPLATFORM} caddy:${CADDY_VERSION}-alpine
 
 COPY --link --from=builder /build/caddy /usr/bin/caddy
