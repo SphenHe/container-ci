@@ -2,3 +2,4 @@
 
 - caddy
 - dsh
+- slapd
